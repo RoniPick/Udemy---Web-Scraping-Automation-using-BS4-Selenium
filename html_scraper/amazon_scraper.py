@@ -3,7 +3,7 @@ import requests
 import csv
 import bs4 
 
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Crome/96.0.4664.45 Safari/537.36' 
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
 REQUEST_HEADER = {'User-Agent': USER_AGENT,  # Device and browser details
                   'Accept-Language': 'en-US,en;q=0.5'} # Language details
 
@@ -30,6 +30,14 @@ def get_product_price(soup):
     else:
         print("Price information not found.")
 
+# Get the product title from the HTML
+def get_product_title(soup):
+    product_title = soup.find('span', id='productTitle')
+    if product_title is not None:
+        return product_title.text.strip()
+    else:
+        print("Title information not found.")
+        return None  # or return a default value if you prefer
 
 
 # Extract the product info from the HTML
@@ -40,6 +48,7 @@ def extract_product_info(url):
     soup = bs4.BeautifulSoup(html, 'lxml') # Create a BeautifulSoup object
     #extract the product price
     product_info['price'] = get_product_price(soup)
+    product_info['title'] = get_product_title(soup)
     print(product_info)
 
 
