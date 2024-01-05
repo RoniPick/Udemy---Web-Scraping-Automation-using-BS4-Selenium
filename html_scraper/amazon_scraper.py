@@ -40,6 +40,22 @@ def get_product_title(soup):
         return None  # or return a default value if you prefer
 
 
+# Get the product rating from the HTML
+def get_product_rating(soup):
+    product_ratings_div = soup.find('div', attrs={
+        'id': 'averageCustomerReviews'
+    })
+    product_rating_section = product_ratings_div.find(
+        'i', attrs={'class': 'a-icon-star'})
+    product_rating_span = product_rating_section.find('span')
+    try:
+        rating = product_rating_span.text.strip().split()
+        return float(rating[0])
+    except ValueError:
+        print("Value Obtained For Rating Could Not Be Parsed")
+        exit()
+
+
 # Extract the product info from the HTML
 def extract_product_info(url):
     product_info = {}
@@ -49,6 +65,7 @@ def extract_product_info(url):
     #extract the product price
     product_info['price'] = get_product_price(soup)
     product_info['title'] = get_product_title(soup)
+    product_info['rating'] = get_product_rating(soup)
     print(product_info)
 
 
@@ -57,5 +74,5 @@ if __name__ == "__main__":
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             url = row[0]
-            print(extract_product_info(url))
+            extract_product_info(url)
     
