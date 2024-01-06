@@ -2,15 +2,10 @@ from datetime import datetime
 import requests
 import csv
 import bs4 
-import concurrent.futures
-from tqdm import tqdm
-
 
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_0_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
 REQUEST_HEADER = {'User-Agent': USER_AGENT,  # Device and browser details
                   'Accept-Language': 'en-US,en;q=0.5'} # Language details
-
-NO_OF_THREADS = 10 # Number of threads to use for the concurrent requests
 
 
 # Get the HTML from the URL
@@ -90,9 +85,9 @@ def get_product_technical_details(soup):
 
 
 # Extract the product info from the HTML
-def extract_product_info(url, output):
+def extract_product_info(url):
     product_info = {}
-    # print(f'Scrapping URL: {url}')
+    print(f'Scrapping URL: {url}')
     html = get_html(url=url) # Get the HTML from the URL
     soup = bs4.BeautifulSoup(html, 'lxml') # Create a BeautifulSoup object
     
@@ -100,27 +95,26 @@ def extract_product_info(url, output):
     product_info['title'] = get_product_title(soup)  # Get the product title from the HTML
     product_info['rating'] = get_product_rating(soup)   # Get the product rating from the HTML
     product_info.update(get_product_technical_details(soup)) # Get the product technical details from the HTML
-    output.append(product_info) # Append the product info to the output list
+    return product_info
 
 
 if __name__ == "__main__":
     products_data = []  # List to store product information dictionaries
-    urls = []  # List to store the product URLs
     with open('amazon_products_urls.csv', newline='') as csvfile:
-        urls = list(csv.reader(csvfile, delimiter=',')) # Read the CSV file and store the URLs in a list
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            url = row[0]
+            product_info = extract_product_info(url)
+            products_data.append(product_info)
 
-    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=NO_OF_THREADS) as executor: # Create a ThreadPoolExecutor
-        for worker_number in tqdm(range(0, len(urls))): # For each URL in the list
-            executor.submit(extract_product_info, urls[worker_number][0], products_data) # Submit the URL to the ThreadPoolExecutor
+    if products_data:
+        output_file = 'output-{}.csv'.format(datetime.today().strftime('%m-%d-%Y'))
+        with open(output_file, 'w', newline='') as outputfile:
+            # Create a csv writer object
+            writer = csv.DictWriter(outputfile, fieldnames=products_data[0].keys())
 
-    output_file = 'output-{}.csv'.format(datetime.today().strftime('%m-%d-%Y'))
-    with open(output_file, 'w', newline='') as outputfile:
-        # Create a csv writer object
-        writer = csv.DictWriter(outputfile, fieldnames=products_data[0].keys())
+            # Write the header to the csv file
+            writer.writeheader()
 
-        # Write the header to the csv file
-        writer.writeheader()
-
-        # Write the data to the csv file
-        writer.writerows(products_data)
+            # Write the data to the csv file
+            writer.writerows(products_data)
