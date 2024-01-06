@@ -12,12 +12,18 @@ OP = webdriver.ChromeOptions()
 # OP.add_argument("--headless")
 OP.add_argument("--no-sandbox")  # Add this line if running in a Linux environment
 
-
 DRIVER = webdriver.Chrome(options=OP)
+
+def login():
+    with open('config.json') as config_file:
+        config = json.load(config_file)
+        
+
 
 def main():
     try:
         DRIVER.get("https://trello.com")
+        login()
         input("Bot operation complete. Press enter to exit.")
         DRIVER.close()
     except Exception as e:
