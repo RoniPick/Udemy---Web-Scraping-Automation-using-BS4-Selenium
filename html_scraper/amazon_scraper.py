@@ -75,20 +75,13 @@ def get_product_technical_details(soup):
             'table', class_='prodDetTable')
         
         for table in data_tables:
-            table_rows = table.find_all('tr')
+            table_rows = table.find_all('tr') # Get all the rows in the table
             for row in table_rows:
-                row_key = row.find('th').text.strip()
-                row_value = row.find('td').text.strip().replace('\u200e', '')
+                row_key = row.find('th').text.strip() # Get the row key
+                row_value = row.find('td').text.strip().replace('\u200e', '') # Get the row value
                 details[row_key] = row_value
     
     return details
-
-
-
-
-
-
-
 
 
 # Extract the product info from the HTML
@@ -102,13 +95,26 @@ def extract_product_info(url):
     product_info['title'] = get_product_title(soup)  # Get the product title from the HTML
     product_info['rating'] = get_product_rating(soup)   # Get the product rating from the HTML
     product_info.update(get_product_technical_details(soup)) # Get the product technical details from the HTML
-    print(product_info)
+    return product_info
 
 
 if __name__ == "__main__":
+    products_data = []  # List to store product information dictionaries
     with open('amazon_products_urls.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             url = row[0]
-            extract_product_info(url)
-    
+            product_info = extract_product_info(url)
+            products_data.append(product_info)
+
+    if products_data:
+        output_file = 'output-{}.csv'.format(datetime.today().strftime('%m-%d-%Y'))
+        with open(output_file, 'w', newline='') as outputfile:
+            # Create a csv writer object
+            writer = csv.DictWriter(outputfile, fieldnames=products_data[0].keys())
+
+            # Write the header to the csv file
+            writer.writeheader()
+
+            # Write the data to the csv file
+            writer.writerows(products_data)
