@@ -10,11 +10,17 @@ import json
 CHROME_DRIVER_PATH = os.path.join(os.getcwd(), "chromedriver")
 OP = webdriver.ChromeOptions()
 NUMBER = 1
-TASK_NUMBER = 1
 # OP.add_argument("--headless")
 OP.add_argument("--no-sandbox")  # Add this line if running in a Linux environment
 
 DRIVER = webdriver.Chrome(options=OP)
+
+
+def screenshot_page():
+    time.sleep(2)
+    date_str = datetime.today().strftime("%d-%m-%Y")
+    fpath = os.path.join(os.getcwd(), 'downloads', '{}.png'.format(date_str))
+    DRIVER.save_screenshot(fpath)
 
 def username(config):
     DRIVER.find_element(By.XPATH, value="//*[@id='BXP-APP']/header[1]/div/div[1]/div[2]/a[1]").click() # Find the login button, XPATH help to find any element on the page
@@ -46,14 +52,13 @@ def navigate_to_board():
     time.sleep(2)
 
 def add_task():
-    global TASK_NUMBER  # declaring TASK_NUMBER as a global variable
     DRIVER.find_element(By.XPATH, value="(//button[contains(@class,'O9vivwyDxMqo3q bxgKMAm3lq5BpA')])[1]").click()
     task_name = DRIVER.find_element(By.XPATH, value="//textarea[@data-testid='list-card-composer-textarea']")
     time.sleep(1)
     task_name.clear()
-    task_name.send_keys("Test Task " + str(TASK_NUMBER))
-    TASK_NUMBER += 1 # Increment the number of tasks created
+    task_name.send_keys("Test Task ")
     DRIVER.find_element(By.XPATH, value="//button[@data-testid='list-card-composer-add-card-button']").click()
+    
 
 def login():
     with open('config.json') as config_file:
@@ -72,6 +77,7 @@ def main():
          # create_board()
         navigate_to_board()
         add_task()
+        screenshot_page()
         input("Bot operation complete. Press enter to exit.")
         DRIVER.close()
     except Exception as e:
